@@ -1,0 +1,104 @@
+{
+  "info": {
+    "name": "Cat Lab",
+    "description": "Run the requests in order. 'Upload photo' saves the new photo's id into {{photoId}}, so 'Label photo' works without copying anything.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "photoId", "value": "ed3a7e03-db46-42fa-98db-94d7e9db52fe" }
+  ],
+  "item": [
+    {
+      "name": "Practice",
+      "item": [
+        {
+          "name": "Hello GET",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/training" }
+        },
+        {
+          "name": "Hello POST",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/training",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{ \"name\": \"Mimi\" }", "options": { "raw": { "language": "json" } } }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Photos",
+      "item": [
+        {
+          "name": "1. Upload photo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Save the new photo's id so 'Label photo' uses it",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set(\"photoId\", pm.response.json().id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/photos",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": [] },
+                { "key": "ground", "type": "text", "value": "training" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "2. List photos",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/photos?ground=training" }
+        },
+        {
+          "name": "3. Label photo: cat",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/api/photos/{{photoId}}",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{ \"label\": \"cat\" }", "options": { "raw": { "language": "json" } } }
+          }
+        },
+        {
+          "name": "4. Label photo: dog (should be 400)",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/api/photos/{{photoId}}",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{ \"label\": \"dog\" }", "options": { "raw": { "language": "json" } } }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Training runs",
+      "item": [
+        {
+          "name": "Save run",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/training-runs",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"rounds\": 10, \"accuracy\": 0.9, \"modelUrl\": \"indexeddb://cat-lab-model\" }",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
